@@ -1,0 +1,42 @@
+# Claude Code 配置文件 (不上传到远程)
+.claude/
+
+# 测试结果文件
+*.json
+!ttfb_config.json
+
+# 临时文件
+/tmp/
+*.tmp
+*.temp
+.DS_Store
+
+# 日志文件
+*.log
+
+# 编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# 运行时文件
+*.pid
+*.sock
+
+# 缓存目录
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# 个人配置文件
+.env
+.env.local
+config.local.*
