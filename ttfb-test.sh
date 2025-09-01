@@ -424,64 +424,64 @@ check_dependencies() {
                     "debian"|"ubuntu")
                         echo "更新包列表..."
                         if ! ${sudo_cmd} apt-get update; then
-                            echo -e "${RED}包列表更新失败${NC}" >&2
-                            install_success=false
-                        else
-                            # 首先安装非column相关的包
-                            local non_column_packages=()
-                            local column_packages=()
-                            
-                            for pkg in "${missing_packages[@]}"; do
-                                if [[ "$pkg" =~ ^(util-linux|bsdextrautils|bsdmainutils)$ ]]; then
-                                    column_packages+=("$pkg")
-                                else
-                                    non_column_packages+=("$pkg")
-                                fi
-                            done
-                            
-                            # 先安装非column包
-                            if [ ${#non_column_packages[@]} -gt 0 ]; then
-                                echo "安装基础依赖包: ${non_column_packages[*]}"
-                                ${sudo_cmd} apt-get install -y "${non_column_packages[@]}" || true
+                            echo -e "${YELLOW}包列表更新失败，将尝试使用缓存安装${NC}" >&2
+                        fi
+                        
+                        # 无论update成功与否，都尝试安装包
+                        # 首先安装非column相关的包
+                        local non_column_packages=()
+                        local column_packages=()
+                        
+                        for pkg in "${missing_packages[@]}"; do
+                            if [[ "$pkg" =~ ^(util-linux|bsdextrautils|bsdmainutils)$ ]]; then
+                                column_packages+=("$pkg")
+                            else
+                                non_column_packages+=("$pkg")
                             fi
+                        done
+                        
+                        # 先安装非column包
+                        if [ ${#non_column_packages[@]} -gt 0 ]; then
+                            echo "安装基础依赖包: ${non_column_packages[*]}"
+                            ${sudo_cmd} apt-get install -y "${non_column_packages[@]}" || true
+                        fi
+                        
+                        # 实施用户提供的一键修复方案 (按新到旧顺序尝试column包)
+                        if ! command -v column >/dev/null 2>&1; then
+                            echo "按照优先级顺序安装column工具..."
+                            echo "尝试安装 util-linux (Debian 12/13+ 首选)..."
+                            ${sudo_cmd} apt-get install -y util-linux || true
                             
-                            # 实施用户提供的一键修复方案 (按新到旧顺序尝试column包)
+                            # 验证安装结果
                             if ! command -v column >/dev/null 2>&1; then
-                                echo "按照优先级顺序安装column工具..."
-                                echo "尝试安装 util-linux (Debian 12/13+ 首选)..."
-                                ${sudo_cmd} apt-get install -y util-linux || true
-                                
-                                # 验证安装结果
-                                if ! command -v column >/dev/null 2>&1; then
-                                    echo "尝试安装 bsdextrautils (Debian 11/12/13 常见)..."
-                                    ${sudo_cmd} apt-get install -y bsdextrautils || true
-                                fi
-                                
-                                # 再次验证
-                                if ! command -v column >/dev/null 2>&1; then
-                                    echo "尝试安装 bsdmainutils (Debian 10 及更早版本)..."
-                                    ${sudo_cmd} apt-get install -y bsdmainutils || true
-                                fi
-                                
-                                # 最终验证
-                                if command -v column >/dev/null 2>&1; then
-                                    echo -e "${GREEN}column 工具安装成功！${NC}"
-                                    which column && column --version 2>/dev/null || echo "column 已安装但无版本信息"
-                                else
-                                    echo -e "${RED}column 工具安装失败，请手动安装${NC}" >&2
-                                fi
+                                echo "尝试安装 bsdextrautils (Debian 11/12/13 常见)..."
+                                ${sudo_cmd} apt-get install -y bsdextrautils || true
                             fi
                             
-                            # 检查是否还有缺失的工具
-                            local still_missing=()
-                            for tool in curl bc column; do
-                                if ! command -v "$tool" >/dev/null 2>&1; then
-                                    still_missing+=("$tool")
-                                fi
-                            done
-                            if [ ${#still_missing[@]} -gt 0 ]; then
-                                install_success=false
+                            # 再次验证
+                            if ! command -v column >/dev/null 2>&1; then
+                                echo "尝试安装 bsdmainutils (Debian 10 及更早版本)..."
+                                ${sudo_cmd} apt-get install -y bsdmainutils || true
                             fi
+                            
+                            # 最终验证
+                            if command -v column >/dev/null 2>&1; then
+                                echo -e "${GREEN}column 工具安装成功！${NC}"
+                                which column && column --version 2>/dev/null || echo "column 已安装但无版本信息"
+                            else
+                                echo -e "${RED}column 工具安装失败，请手动安装${NC}" >&2
+                            fi
+                        fi
+                        
+                        # 检查是否还有缺失的工具
+                        local still_missing=()
+                        for tool in curl bc column; do
+                            if ! command -v "$tool" >/dev/null 2>&1; then
+                                still_missing+=("$tool")
+                            fi
+                        done
+                        if [ ${#still_missing[@]} -gt 0 ]; then
+                            install_success=false
                         fi
                         ;;
                     "rhel"|"centos"|"fedora"|"rocky"|"almalinux")
