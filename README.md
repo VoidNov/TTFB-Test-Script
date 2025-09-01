@@ -68,7 +68,7 @@ wget -O ttfb-test.sh https://raw.githubusercontent.com/VoidNov/TTFB-Test-Script/
 **方式三：Alpine Linux专用（容器环境）**
 ```bash
 # 安装bash支持
-apk add --no-cache bash curl
+sudo apk add --no-cache bash curl
 
 # 下载并运行脚本
 curl -fsSL https://raw.githubusercontent.com/VoidNov/TTFB-Test-Script/main/ttfb-test.sh -o ttfb-test.sh && chmod +x ttfb-test.sh && bash ./ttfb-test.sh
@@ -154,6 +154,9 @@ chmod +x ttfb-test.sh
 - **状态**: 状态指示器 + HTTP状态码
 - **TTFB**: TTFB时间
 - **等级**: 性能等级（优秀/良好/一般/中等偏下/差）
+
+### ⚠️ 特别说明
+- **AI API节点**: OpenAI(API)和Claude(API)节点返回401/403状态码是正常现象，因为这些是需要认证的API端点。测试重点在于网络连通性和响应时间，而非API调用成功。
 
 ## TTFB测量原理
 

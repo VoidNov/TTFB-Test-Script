@@ -88,28 +88,30 @@ get_origin_url() {
     local url="$1"
     # 生成4-6位随机数
     local random_suffix=$(shuf -i 1000-999999 -n 1 2>/dev/null || echo $((RANDOM % 899999 + 100000)))
+    # 生成时间戳避免404缓存
+    local timestamp=$(date +%s%N | cut -b1-13)
     
     case "$url" in
-        "https://www.google.com/generate_204") echo "https://www.google.com/invalidpath${random_suffix}" ;;
-        "https://github.com/robots.txt") echo "https://github.com/invalidpath${random_suffix}" ;;
-        "https://fast.com/robots.txt") echo "https://fast.com/invalidpath${random_suffix}" ;;
-        "https://www.spotify.com/robots.txt") echo "https://www.spotify.com/invalidpath${random_suffix}" ;;
-        "https://www.disneyplus.com/robots.txt") echo "https://www.disneyplus.com/invalidpath${random_suffix}" ;;
-        "https://www.facebook.com/robots.txt") echo "https://www.facebook.com/invalidpath${random_suffix}" ;;
-        "https://x.com/robots.txt") echo "https://x.com/invalidpath${random_suffix}" ;;
-        "https://www.instagram.com/robots.txt") echo "https://www.instagram.com/invalidpath${random_suffix}" ;;
-        "https://www.tiktok.com/robots.txt") echo "https://www.tiktok.com/invalidpath${random_suffix}" ;;
-        "https://www.youtube.com/generate_204") echo "https://www.youtube.com/invalidpath${random_suffix}" ;;
-        "https://www.twitch.tv/robots.txt") echo "https://www.twitch.tv/invalidpath${random_suffix}" ;;
-        "https://www.pornhub.com/robots.txt") echo "https://www.pornhub.com/invalidpath${random_suffix}" ;;
-        "https://www.apple.com/library/test/success.html") echo "https://www.apple.com/invalidpath${random_suffix}" ;;
-        "https://store.steampowered.com/favicon.ico") echo "https://store.steampowered.com/invalidpath${random_suffix}" ;;
-        "https://connectivity.office.com/") echo "https://connectivity.office.com/invalidpath${random_suffix}" ;;
-        "https://web.telegram.org/favicon.ico") echo "https://web.telegram.org/invalidpath${random_suffix}" ;;
-        "https://www.reddit.com/robots.txt") echo "https://www.reddit.com/invalidpath${random_suffix}" ;;
-        "https://discord.com/robots.txt") echo "https://discord.com/invalidpath${random_suffix}" ;;
-        "https://api.openai.com/v1/chat/completions") echo "https://api.openai.com/invalidpath${random_suffix}" ;;
-        "https://api.anthropic.com/v1/messages") echo "https://api.anthropic.com/invalidpath${random_suffix}" ;;
+        "https://www.google.com/generate_204") echo "https://www.google.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://github.com/robots.txt") echo "https://github.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://fast.com/robots.txt") echo "https://fast.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.spotify.com/robots.txt") echo "https://www.spotify.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.disneyplus.com/robots.txt") echo "https://www.disneyplus.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.facebook.com/robots.txt") echo "https://www.facebook.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://x.com/robots.txt") echo "https://x.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.instagram.com/robots.txt") echo "https://www.instagram.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.tiktok.com/robots.txt") echo "https://www.tiktok.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.youtube.com/generate_204") echo "https://www.youtube.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.twitch.tv/robots.txt") echo "https://www.twitch.tv/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.pornhub.com/robots.txt") echo "https://www.pornhub.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.apple.com/library/test/success.html") echo "https://www.apple.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://store.steampowered.com/favicon.ico") echo "https://store.steampowered.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://connectivity.office.com/") echo "https://connectivity.office.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://web.telegram.org/favicon.ico") echo "https://web.telegram.org/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://www.reddit.com/robots.txt") echo "https://www.reddit.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://discord.com/robots.txt") echo "https://discord.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://api.openai.com/v1/chat/completions") echo "https://api.openai.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
+        "https://api.anthropic.com/v1/messages") echo "https://api.anthropic.com/invalidpath${random_suffix}?_hb=${timestamp}" ;;
         *) echo "" ;;  # 未知URL返回空
     esac
 }
@@ -356,27 +358,6 @@ check_dependencies() {
         missing_packages+=("curl")
     fi
     
-    # 检查dig或nslookup (DNS解析)
-    if ! command -v dig >/dev/null 2>&1 && ! command -v nslookup >/dev/null 2>&1; then
-        missing_tools+=("dig或nslookup")
-        case "$OS" in
-            "debian"|"ubuntu")
-                missing_packages+=("dnsutils")
-                ;;
-            "rhel"|"centos"|"fedora")
-                missing_packages+=("bind-utils")
-                ;;
-            "alpine")
-                missing_packages+=("bind-tools")
-                ;;
-            "macos")
-                missing_packages+=("bind")
-                ;;
-            *)
-                missing_packages+=("dns-tools")
-                ;;
-        esac
-    fi
     
     # 检查bc (计算)
     if ! command -v bc >/dev/null 2>&1; then
@@ -493,19 +474,10 @@ check_dependencies() {
                             
                             # 检查是否还有缺失的工具
                             local still_missing=()
-                            for tool in curl dig bc column; do
-                                case $tool in
-                                    "dig")
-                                        if ! command -v dig >/dev/null 2>&1 && ! command -v nslookup >/dev/null 2>&1; then
-                                            still_missing+=("$tool")
-                                        fi
-                                        ;;
-                                    *)
-                                        if ! command -v "$tool" >/dev/null 2>&1; then
-                                            still_missing+=("$tool")
-                                        fi
-                                        ;;
-                                esac
+                            for tool in curl bc column; do
+                                if ! command -v "$tool" >/dev/null 2>&1; then
+                                    still_missing+=("$tool")
+                                fi
                             done
                             if [ ${#still_missing[@]} -gt 0 ]; then
                                 install_success=false
@@ -561,9 +533,6 @@ check_dependencies() {
                 if ! command -v curl >/dev/null 2>&1; then
                     remaining_missing+=("curl")
                 fi
-                if ! command -v dig >/dev/null 2>&1 && ! command -v nslookup >/dev/null 2>&1; then
-                    remaining_missing+=("dig或nslookup")
-                fi
                 if ! command -v bc >/dev/null 2>&1; then
                     remaining_missing+=("bc")
                 fi
@@ -598,38 +567,37 @@ check_dependencies() {
                 echo "  which column && column --version"
                 echo
                 echo -e "${BLUE}  # 其他必需依赖:${NC}"
-                echo "  sudo apt-get install -y curl dnsutils bc"
+                echo "  sudo apt-get install -y curl bc"
                 ;;
             "rhel"|"centos"|"fedora"|"rocky"|"almalinux")
                 echo -e "${BLUE}  # RHEL/CentOS/Fedora/Rocky/AlmaLinux:${NC}"
                 if command -v dnf >/dev/null 2>&1; then
-                    echo "  sudo dnf install curl bind-utils bc util-linux"
+                    echo "  sudo dnf install curl bc util-linux"
                 else
-                    echo "  sudo yum install curl bind-utils bc util-linux"
+                    echo "  sudo yum install curl bc util-linux"
                 fi
                 ;;
             "alpine")
                 echo -e "${BLUE}  # Alpine Linux:${NC}"
-                echo "  sudo apk add curl bind-tools bc util-linux"
+                echo "  sudo apk add curl bc util-linux"
                 ;;
             "arch"|"manjaro")
                 echo -e "${BLUE}  # Arch Linux/Manjaro:${NC}"
-                echo "  sudo pacman -S curl bind bc util-linux"
+                echo "  sudo pacman -S curl bc util-linux"
                 ;;
             "macos")
                 echo -e "${BLUE}  # macOS:${NC}"
                 echo "  # 使用 Homebrew:"
-                echo "  brew install curl bind bc util-linux"
+                echo "  brew install curl bc util-linux"
                 echo
                 echo "  # 使用 MacPorts:"
-                echo "  sudo port install curl bind9 bc util-linux"
+                echo "  sudo port install curl bc util-linux"
                 ;;
             *)
                 echo -e "${BLUE}  # 通用指令:${NC}"
-                echo "  请安装: curl, dig/nslookup, bc, column"
+                echo "  请安装: curl, bc, column"
                 echo "  这些工具通常在以下包中:"
                 echo "  - curl: curl"
-                echo "  - dig: dnsutils/bind-utils/bind-tools"
                 echo "  - bc: bc"
                 echo "  - column: bsdextrautils/bsdmainutils/util-linux"
                 ;;
@@ -674,26 +642,6 @@ EOF
     done
 }
 
-# DNS解析时间测量
-measure_dns_time() {
-    local hostname="$1"
-    local start_time end_time dns_time
-    
-    start_time=$(date +%s.%N)
-    
-    if command -v dig >/dev/null 2>&1; then
-        dig +short "$hostname" >/dev/null 2>&1
-    elif command -v nslookup >/dev/null 2>&1; then
-        nslookup "$hostname" >/dev/null 2>&1
-    else
-        echo "0"
-        return
-    fi
-    
-    end_time=$(date +%s.%N)
-    dns_time=$(echo "($end_time - $start_time) * 1000" | bc)
-    printf "%.0f" "$dns_time"
-}
 
 # 单个URL详细测试
 test_single_url() {
@@ -733,7 +681,8 @@ test_single_url() {
                             -s \
                             --max-time "$TIMEOUT" \
                             -H "User-Agent: $DEFAULT_USER_AGENT" \
-                            --insecure \
+                            --compressed \
+                            -H "Accept-Language: en-US,en;q=0.8" \
                             "$url" 2>/dev/null)
         
         # 2. 测试错误路径强制回源URL (避免CDN缓存)
@@ -744,7 +693,8 @@ test_single_url() {
                                 -s \
                                 --max-time "$TIMEOUT" \
                                 -H "User-Agent: $DEFAULT_USER_AGENT" \
-                                --insecure \
+                                --compressed \
+                                -H "Accept-Language: en-US,en;q=0.8" \
                                 "$origin_url" 2>/dev/null)
         fi
         
@@ -904,7 +854,7 @@ test_single_url() {
             for ttfb in "${ttfb_times[@]}"; do
                 variance=$(echo "$variance + ($ttfb - $avg_ttfb)^2" | bc)
             done
-            stdev_ttfb=$(echo "scale=1; sqrt($variance / $successful_tests)" | bc)
+            stdev_ttfb=$(echo "scale=1; sqrt($variance / $successful_tests)" | bc -l)
         else
             # 如果没有成功的测试，设置默认值
             median_ttfb="0"
@@ -1339,7 +1289,7 @@ display_results() {
             
             # 检查是否成功 - 加强校验
             local avg_ttfb
-            avg_ttfb=$(grep "^avg_ttfb=" "$result_file" 2>/dev/null | cut -d'=' -f2 | tr -d '"')
+            avg_ttfb=$(grep "^avg_ttfb=" "$result_file" 2>/dev/null | cut -d'=' -f2 | tr -d '"' || echo "")
             if [ -n "$avg_ttfb" ] && [ "$avg_ttfb" != "" ] && [ "$avg_ttfb" != "0" ]; then
                 successful+=("$result_file")
             else
@@ -1359,7 +1309,7 @@ display_results() {
         # 按平均TTFB排序
         local sorted_results
         sorted_results=$(for file in "${successful[@]}"; do
-            avg_ttfb=$(grep "^avg_ttfb=" "$file" | cut -d'=' -f2 | tr -d '"')
+            avg_ttfb=$(grep "^avg_ttfb=" "$file" 2>/dev/null | cut -d'=' -f2 | tr -d '"' || echo "0")
             echo "$avg_ttfb $file"
         done | sort -n | cut -d' ' -f2-)
         
@@ -1644,7 +1594,7 @@ generate_json_output() {
         local result_file="$TEMP_DIR/result_$i"
         if [ -f "$result_file" ]; then
             local avg_ttfb
-            avg_ttfb=$(grep "^avg_ttfb=" "$result_file" | cut -d'=' -f2)
+            avg_ttfb=$(grep "^avg_ttfb=" "$result_file" 2>/dev/null | cut -d'=' -f2 || echo "")
             if [ -n "$avg_ttfb" ]; then
                 successful_count=$((successful_count + 1))
             fi
@@ -1678,14 +1628,29 @@ generate_json_output() {
             json_content+='"errors":'$errors','
             
             if [ -n "$avg_ttfb" ]; then
+                # 将comma-separated字符串转换为JSON数组格式
+                local json_array=""
+                if [ -n "$all_ttfb_times" ] && [ "$all_ttfb_times" != "N/A" ]; then
+                    json_array=$(echo "$all_ttfb_times" | sed 's/,/,/g')
+                fi
+                
                 json_content+='"avg_ttfb":'$avg_ttfb','
                 json_content+='"min_ttfb":'$min_ttfb','
                 json_content+='"max_ttfb":'$max_ttfb','
                 json_content+='"median_ttfb":'$median_ttfb','
                 json_content+='"stdev_ttfb":'$stdev_ttfb','
-                json_content+='"all_times":['$all_times'],'
+                json_content+='"all_ttfb_times":['$json_array'],'
+                
+                # 添加回源TTFB时间数组
+                local origin_json_array=""
+                if [ -n "$all_origin_ttfb_times" ] && [ "$all_origin_ttfb_times" != "N/A" ]; then
+                    origin_json_array=$(echo "$all_origin_ttfb_times" | sed 's/,/,/g')
+                fi
+                json_content+='"all_origin_ttfb_times":['$origin_json_array'],'
             else
                 json_content+='"avg_ttfb":null,'
+                json_content+='"all_ttfb_times":null,'
+                json_content+='"all_origin_ttfb_times":null,'
             fi
             
             json_content+='"timestamp":"'$timestamp'"'

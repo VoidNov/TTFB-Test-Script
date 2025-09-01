@@ -126,14 +126,16 @@
 #### OpenAI (ChatGPT API)
 - **端点**: `https://api.openai.com/v1/chat/completions`
 - **用途**: OpenAI API服务连通性
-- **返回**: API端点响应(需认证)
+- **返回**: 401/403状态码(正常，需认证)
 - **优势**: 测试AI服务基础设施延迟
+- **说明**: 401/403状态码表明API正常响应，测试重点是网络性能
 
 #### Claude (Anthropic API)
 - **端点**: `https://api.anthropic.com/v1/messages`
 - **用途**: Claude AI API服务连通性
-- **返回**: API端点响应(需认证)
+- **返回**: 401/403状态码(正常，需认证)
 - **优势**: 测试Anthropic服务网络性能
+- **说明**: 401/403状态码表明API正常响应，测试重点是网络性能
 
 ### 📱 通讯服务
 
